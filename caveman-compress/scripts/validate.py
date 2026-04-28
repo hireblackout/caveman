@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+from collections import Counter
 from pathlib import Path
 
 URL_REGEX = re.compile(r"https?://[^\s)]+")
@@ -93,6 +94,12 @@ def count_bullets(text):
     return len(BULLET_REGEX.findall(text))
 
 
+def extract_inline_codes(text):
+    text_without_fences = re.sub(r"^```[\s\S]*?^```", "", text, flags=re.MULTILINE)
+    text_without_fences = re.sub(r"^~~~[\s\S]*?^~~~", "", text_without_fences, flags=re.MULTILINE)
+    return re.findall(r"`([^`]+)`", text_without_fences)
+
+
 # ---------- Validators ----------
 
 
@@ -144,6 +151,27 @@ def validate_bullets(orig, comp, result):
         result.add_warning(f"Bullet count changed too much: {b1} -> {b2}")
 
 
+def _format_inline_counts(counter):
+    parts = []
+    for code in sorted(counter):
+        count = counter[code]
+        label = f"{code} ({count})" if count > 1 else code
+        parts.append(label)
+    return ", ".join(parts)
+
+
+def validate_inline_codes(orig, comp, result):
+    c1 = Counter(extract_inline_codes(orig))
+    c2 = Counter(extract_inline_codes(comp))
+    lost = c1 - c2
+    added = c2 - c1
+
+    if lost:
+        result.add_error(f"Inline code lost: {_format_inline_counts(lost)}")
+    if added:
+        result.add_warning(f"Inline code added: {_format_inline_counts(added)}")
+
+
 # ---------- Main ----------
 
 
@@ -158,6 +186,7 @@ def validate(original_path: Path, compressed_path: Path) -> ValidationResult:
     validate_urls(orig, comp, result)
     validate_paths(orig, comp, result)
     validate_bullets(orig, comp, result)
+    validate_inline_codes(orig, comp, result)
 
     return result
 
