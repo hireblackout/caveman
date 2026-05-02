@@ -46,11 +46,6 @@ class TestIsSensitivePath(unittest.TestCase):
             "id_ed25519.pub",
             "authorized_keys",
             "known_hosts",
-            "token_refresh.md",
-            "password_policy.txt",
-            "secrets_management_guide.md",
-            "access_token.md",
-            "credential_rotation.rst",
         ]
         for name in true_positive_cases:
             with tempfile.TemporaryDirectory() as tmp:

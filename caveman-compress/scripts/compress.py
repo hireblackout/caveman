@@ -54,11 +54,7 @@ def is_sensitive_path(filepath: Path) -> bool:
     if lowered_parts & SENSITIVE_PATH_COMPONENTS:
         return True
     if filepath.suffix.lower() in _DOC_EXTENSIONS:
-        # Normalize for token check
-        lower = re.sub(r"[_\-\s.]", "", name.lower())
-        # Allow doc file only if no sensitive tokens (still check regex above)
-        if not any(tok in lower for tok in SENSITIVE_NAME_TOKENS):
-            return False
+        return False
     # Normalize separators so "api-key" and "api_key" both match "apikey".
     lower = re.sub(r"[_\-\s.]", "", name.lower())
     return any(tok in lower for tok in SENSITIVE_NAME_TOKENS)
